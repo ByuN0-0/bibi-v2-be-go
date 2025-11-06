@@ -1,0 +1,11 @@
+.env
+.env.*
+*.env
+.git
+.gitignore
+README.md
+.vscode
+.idea
+*.md
+scripts/
+terraform/
