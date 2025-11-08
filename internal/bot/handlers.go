@@ -2,6 +2,7 @@ package bot
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/bwmarrin/discordgo"
 
@@ -17,7 +18,8 @@ func (b *Bot) registerHandlers() {
 // onReady Bot이 준비 완료되었을 때 호출됩니다
 func (b *Bot) onReady(s *discordgo.Session, event *discordgo.Ready) {
 	b.Logger.Info(fmt.Sprintf("Bot 준비 완료. 로그인: %s", event.User.Username))
-	s.UpdateGameStatus(0, "/help")
+	startTime := time.Now().Format("2006-01-02T15:04")
+	s.UpdateGameStatus(0, startTime)
 }
 
 // onInteractionCreate 슬래쉬 명령어가 실행되었을 때 호출됩니다
