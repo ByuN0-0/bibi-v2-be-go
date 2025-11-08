@@ -5,6 +5,7 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 
+	"bibi-bot-v2/internal/commands"
 	"bibi-bot-v2/internal/config"
 	"bibi-bot-v2/internal/logger"
 )
@@ -48,8 +49,31 @@ func (b *Bot) Start() error {
 
 	b.Logger.Info("Bot이 성공적으로 연결되었습니다")
 
+	// 슬래쉬 명령어 등록
+	err = b.registerSlashCommands()
+	if err != nil {
+		return fmt.Errorf("슬래쉬 명령어 등록 실패: %w", err)
+	}
+
 	// 무한 대기
 	select {}
+}
+
+// registerSlashCommands 슬래쉬 명령어를 Discord에 등록합니다
+func (b *Bot) registerSlashCommands() error {
+	b.Logger.Info("슬래쉬 명령어 등록 중...")
+
+	for _, cmd := range commands.GetAllCommands() {
+		appCmd := cmd.ApplicationCommand()
+		_, err := b.Session.ApplicationCommandCreate(b.Session.State.User.ID, "", appCmd)
+		if err != nil {
+			return fmt.Errorf("명령어 '%s' 등록 실패: %w", appCmd.Name, err)
+		}
+		b.Logger.Info(fmt.Sprintf("명령어 등록 완료: /%s", appCmd.Name))
+	}
+
+	b.Logger.Info("모든 슬래쉬 명령어 등록 완료")
+	return nil
 }
 
 // Stop Bot을 종료합니다

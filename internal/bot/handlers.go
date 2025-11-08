@@ -2,7 +2,6 @@ package bot
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/bwmarrin/discordgo"
 
@@ -12,37 +11,23 @@ import (
 // registerHandlers 모든 이벤트 핸들러를 등록합니다
 func (b *Bot) registerHandlers() {
 	b.Session.AddHandler(b.onReady)
-	b.Session.AddHandler(b.onMessageCreate)
+	b.Session.AddHandler(b.onInteractionCreate)
 }
 
 // onReady Bot이 준비 완료되었을 때 호출됩니다
 func (b *Bot) onReady(s *discordgo.Session, event *discordgo.Ready) {
 	b.Logger.Info(fmt.Sprintf("Bot 준비 완료. 로그인: %s", event.User.Username))
-	s.UpdateGameStatus(0, "!help")
+	s.UpdateGameStatus(0, "/help")
 }
 
-// onMessageCreate 메시지가 생성되었을 때 호출됩니다
-func (b *Bot) onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
-	// Bot이 보낸 메시지 무시
-	if m.Author.ID == s.State.User.ID {
+// onInteractionCreate 슬래쉬 명령어가 실행되었을 때 호출됩니다
+func (b *Bot) onInteractionCreate(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	// ApplicationCommand 타입만 처리
+	if i.Type != discordgo.InteractionApplicationCommand {
 		return
 	}
 
-	// 명령어 처리
-	if strings.HasPrefix(m.Content, "!") {
-		b.handleCommand(s, m)
-	}
-}
-
-// handleCommand 명령어를 처리합니다
-func (b *Bot) handleCommand(s *discordgo.Session, m *discordgo.MessageCreate) {
-	args := strings.Fields(m.Content)
-	if len(args) == 0 {
-		return
-	}
-
-	cmdName := strings.TrimPrefix(args[0], "!")
-	cmdArgs := args[1:]
+	cmdName := i.ApplicationCommandData().Name
 
 	// 등록된 명령어 실행
 	cmd := commands.GetCommand(cmdName)
@@ -51,9 +36,15 @@ func (b *Bot) handleCommand(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	err := cmd.Execute(s, m, cmdArgs)
+	err := cmd.Execute(s, i)
 	if err != nil {
 		b.Logger.Error(fmt.Sprintf("명령어 실행 실패: %v", err))
-		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("오류: %v", err))
+		// 에러 응답
+		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: fmt.Sprintf("오류: %v", err),
+			},
+		})
 	}
 }

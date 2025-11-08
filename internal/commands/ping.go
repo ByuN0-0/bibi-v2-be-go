@@ -8,16 +8,20 @@ import (
 
 type PingCommand struct{}
 
-func (c *PingCommand) Name() string {
-	return "ping"
+func (c *PingCommand) ApplicationCommand() *discordgo.ApplicationCommand {
+	return &discordgo.ApplicationCommand{
+		Name:        "ping",
+		Description: "Pong! Bot의 응답 시간을 측정합니다",
+	}
 }
 
-func (c *PingCommand) Description() string {
-	return "Pong! Bot의 응답 시간을 측정합니다"
-}
-
-func (c *PingCommand) Execute(s *discordgo.Session, m *discordgo.MessageCreate, args []string) error {
+func (c *PingCommand) Execute(s *discordgo.Session, i *discordgo.InteractionCreate) error {
 	response := fmt.Sprintf("Pong! 응답 시간: %dms", s.HeartbeatLatency().Milliseconds())
-	_, err := s.ChannelMessageSend(m.ChannelID, response)
-	return err
+
+	return s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Content: response,
+		},
+	})
 }
