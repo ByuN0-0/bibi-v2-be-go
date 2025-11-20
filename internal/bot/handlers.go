@@ -9,6 +9,12 @@ import (
 	"bibi-bot-v2/internal/commands"
 )
 
+// initializeCommands 명령어들을 초기화합니다
+func (b *Bot) initializeCommands() {
+	// Weather 명령어 등록
+	commands.Register(commands.NewWeatherCommand(b.Config.WeatherAPIKey))
+}
+
 // registerHandlers 모든 이벤트 핸들러를 등록합니다
 func (b *Bot) registerHandlers() {
 	b.Session.AddHandler(b.onReady)

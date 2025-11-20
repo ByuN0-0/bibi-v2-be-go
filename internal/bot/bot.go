@@ -29,6 +29,9 @@ func NewBot(cfg *config.Config, log *logger.Logger) (*Bot, error) {
 		Logger:  log,
 	}
 
+	// 명령어 초기화
+	bot.initializeCommands()
+
 	// 핸들러 등록
 	bot.registerHandlers()
 

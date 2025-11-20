@@ -4,15 +4,16 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/go-ozzo/ozzo-validation/v4"
+	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/joho/godotenv"
 )
 
 type Config struct {
-	Token     string `json:"token"`
-	ClientID  string `json:"clientId"`
-	Secret    string `json:"secret"`
-	PublicKey string `json:"publicKey"`
+	Token         string `json:"token"`
+	ClientID      string `json:"clientId"`
+	Secret        string `json:"secret"`
+	PublicKey     string `json:"publicKey"`
+	WeatherAPIKey string `json:"weatherApiKey"`
 }
 
 // Validate 설정값을 검증합니다
@@ -22,6 +23,7 @@ func (c *Config) Validate() error {
 		validation.Field(&c.ClientID, validation.Required.Error("DISCORD_CLIENT_ID는 필수입니다")),
 		validation.Field(&c.Secret, validation.Required.Error("DISCORD_CLIENT_SECRET은 필수입니다")),
 		validation.Field(&c.PublicKey, validation.Required.Error("DISCORD_PUBLIC_KEY는 필수입니다")),
+		validation.Field(&c.WeatherAPIKey, validation.Required.Error("OPENWEATHER_API_KEY는 필수입니다")),
 	)
 }
 
@@ -31,10 +33,11 @@ func LoadConfig() (*Config, error) {
 	_ = godotenv.Load()
 
 	config := &Config{
-		Token:     os.Getenv("DISCORD_BOT_TOKEN"),
-		ClientID:  os.Getenv("DISCORD_CLIENT_ID"),
-		Secret:    os.Getenv("DISCORD_CLIENT_SECRET"),
-		PublicKey: os.Getenv("DISCORD_PUBLIC_KEY"),
+		Token:         os.Getenv("DISCORD_BOT_TOKEN"),
+		ClientID:      os.Getenv("DISCORD_CLIENT_ID"),
+		Secret:        os.Getenv("DISCORD_CLIENT_SECRET"),
+		PublicKey:     os.Getenv("DISCORD_PUBLIC_KEY"),
+		WeatherAPIKey: os.Getenv("OPENWEATHER_API_KEY"),
 	}
 
 	if err := config.Validate(); err != nil {
