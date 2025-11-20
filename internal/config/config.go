@@ -4,14 +4,25 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/joho/godotenv"
 )
 
 type Config struct {
-	Token     string
-	ClientID  string
-	Secret    string
-	PublicKey string
+	Token     string `json:"token"`
+	ClientID  string `json:"clientId"`
+	Secret    string `json:"secret"`
+	PublicKey string `json:"publicKey"`
+}
+
+// Validate 설정값을 검증합니다
+func (c *Config) Validate() error {
+	return validation.ValidateStruct(c,
+		validation.Field(&c.Token, validation.Required.Error("DISCORD_BOT_TOKEN은 필수입니다")),
+		validation.Field(&c.ClientID, validation.Required.Error("DISCORD_CLIENT_ID는 필수입니다")),
+		validation.Field(&c.Secret, validation.Required.Error("DISCORD_CLIENT_SECRET은 필수입니다")),
+		validation.Field(&c.PublicKey, validation.Required.Error("DISCORD_PUBLIC_KEY는 필수입니다")),
+	)
 }
 
 // LoadConfig 설정을 .env 파일에서 로드합니다
@@ -19,15 +30,16 @@ func LoadConfig() (*Config, error) {
 	// .env 파일 로드 (실패해도 무시)
 	_ = godotenv.Load()
 
-	token := os.Getenv("DISCORD_BOT_TOKEN")
-	if token == "" {
-		return nil, fmt.Errorf("DISCORD_BOT_TOKEN 환경변수가 설정되지 않음")
-	}
-
-	return &Config{
-		Token:     token,
+	config := &Config{
+		Token:     os.Getenv("DISCORD_BOT_TOKEN"),
 		ClientID:  os.Getenv("DISCORD_CLIENT_ID"),
 		Secret:    os.Getenv("DISCORD_CLIENT_SECRET"),
 		PublicKey: os.Getenv("DISCORD_PUBLIC_KEY"),
-	}, nil
+	}
+
+	if err := config.Validate(); err != nil {
+		return nil, fmt.Errorf("설정 검증 실패: %w", err)
+	}
+
+	return config, nil
 }
